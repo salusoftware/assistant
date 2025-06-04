@@ -6,8 +6,14 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('varchar')
+  @Column('varchar', { length: 255 })
+  name: string;
+
+  @Column('varchar', { length: 255, unique: true })
   email: string;
+
+  @Column('varchar', { length: 30, unique: true })
+  username: string;
 
   @Column('varchar')
   password: string;

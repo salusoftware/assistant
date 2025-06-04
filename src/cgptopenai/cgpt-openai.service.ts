@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
+import { TesteAssistant } from './assistant/teste.assistant';
 
 @Injectable()
 export class CgptOpenaiService {
   private openAi: OpenAI;
 
-  constructor() {
+  constructor(private testeAssistant: TesteAssistant) {
     this.openAi = new OpenAI();
   }
 
@@ -21,8 +22,9 @@ export class CgptOpenaiService {
     return Buffer.from(await response.arrayBuffer());
   }
 
-  async transcribeAudio(buffer: any): Promise<string> {
-    const tempPath = path.resolve(__dirname, 'temp_audio.ogg');
+  async transcribeAudio(buffer: any, fileName: string): Promise<string> {
+    const tempPath = path.resolve(__dirname, fileName);
+    console.log(tempPath);
     fs.writeFileSync(tempPath, buffer); // salvar o buffer como arquivo
 
     const stream = fs.createReadStream(tempPath);
@@ -54,5 +56,13 @@ export class CgptOpenaiService {
     });
 
     return completion.choices[0].message.content;
+  }
+
+  assistant() {
+    // this.testeAssistant.run({
+    //   threadId: '',
+    //   assistantId: '',
+    //   message: '',
+    // });
   }
 }

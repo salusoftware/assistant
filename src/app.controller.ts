@@ -1,6 +1,13 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { CgptOpenaiService } from './cgptopenai/cgpt-openai.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller()
 export class AppController {
@@ -21,5 +28,22 @@ export class AppController {
       'fable',
     );
     return { success: true };
+  }
+  //
+  // @Get('/assistant')
+  // async assistant() {
+  //   await this.cgptOpenaiService.assistant();
+  //   return { success: true };
+  // }
+
+  @Post('/assistant/audio')
+  @UseInterceptors(FileInterceptor('file'))
+  async assistant(@UploadedFile() file: Express.Multer.File) {
+    const transcription = await this.cgptOpenaiService.transcribeAudio(
+      file.buffer,
+      file.originalname,
+    );
+    console.log(transcription);
+    return { transcription };
   }
 }

@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import * as fs from 'fs';
 import { CgptOpenaiService } from '../../cgptopenai/cgpt-openai.service';
 import * as FormData from 'form-data';
 
@@ -45,6 +44,18 @@ export class WhatsappService {
     return Buffer.from(response.data);
   }
 
+  async processPrompt(prompt: string, from: string) {
+    const chatGprResponse = await this.cgptOpenAiService.completions(prompt);
+
+    if (!chatGprResponse) throw new Error('Erro no fluxo');
+
+    const bufferChatGpt =
+      await this.cgptOpenAiService.createAudio(chatGprResponse);
+
+    const uploadedMediaId = await this.uploadMedia(bufferChatGpt);
+    await this.sendAudioMessage(from, uploadedMediaId);
+  }
+
   async handleWebhook(body: {
     entry: Array<{
       changes: Array<{
@@ -73,33 +84,19 @@ export class WhatsappService {
 
         const audioUrl = await this.getMediaUrl(mediaId);
         const buffer = await this.downloadMedia(audioUrl);
-        const transcription =
-          await this.cgptOpenAiService.transcribeAudio(buffer);
+        const transcription = await this.cgptOpenAiService.transcribeAudio(
+          buffer,
+          'file.ogg',
+        );
 
-        const chatGprResponse =
-          await this.cgptOpenAiService.completions(transcription);
-
-        if (!chatGprResponse) throw new Error('Erro no fluxo');
-
-        const bufferChatGpt =
-          await this.cgptOpenAiService.createAudio(chatGprResponse);
-
-        const uploadedMediaId = await this.uploadMedia(bufferChatGpt);
-        await this.sendAudioMessage(from, uploadedMediaId);
-
-        console.log(transcription);
-        fs.writeFileSync('audiozap.ogg', buffer);
-
-        console.log({ audioUrl });
-
+        await this.processPrompt(transcription, from);
         return;
       }
 
       for (const message of messages) {
         const from = message.from;
         const text = message.text?.body || '[não é texto]';
-        console.log(`Mensagem de ${from}: ${text}`);
-        // Aqui você pode chamar um serviço, responder, etc.
+        await this.processPrompt(text, from);
       }
     }
 
