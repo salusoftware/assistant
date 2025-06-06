@@ -12,9 +12,4 @@ export class UserController {
   create(@Body() dto: CreateUserDto) {
     return this.userService.create(dto);
   }
-  @Public()
-  @Get()
-  getAll() {
-    return { success: 2 };
-  }
 }
