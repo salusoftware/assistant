@@ -15,6 +15,6 @@ export class UserController {
   @Public()
   @Get()
   getAll() {
-    return { success: true };
+    return { success: 2 };
   }
 }
