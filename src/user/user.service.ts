@@ -11,6 +11,10 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  getAll() {
+    return this.userRepository.find();
+  }
+
   create(dto: CreateUserDto) {
     const entity = this.userRepository.create(dto);
     return this.userRepository.save(entity);
