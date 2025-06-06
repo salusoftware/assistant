@@ -15,6 +15,6 @@ export class UserController {
   @Public()
   @Get()
   getAll() {
-    return this.userService.getAll();
+    return { success: true };
   }
 }
